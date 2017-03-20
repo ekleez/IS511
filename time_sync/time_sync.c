@@ -49,7 +49,7 @@ void main(int argc, char *argv[]){
 		exit(0);
 
 	// Create Socket for Connect with Server
-	if((client_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
+	if((client_fd = socket(PF_INET, SOCK_RAW, IPPROTO_TCP)) < 0){
 		printf("Can't create socket\n");
 		exit(0);
 	}
@@ -58,6 +58,15 @@ void main(int argc, char *argv[]){
 	server_addr.sin_addr.s_addr = inet_addr(argv[1]);
 	server_addr.sin_port = htons(80);
 
+	
+	int one = 1;
+	const int *val = &one;
+	
+	if(setsockopt(client_fd, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) < 0){
+		printf("Error setting IP_HDRINCL.");
+		exit(0);
+	}
+	
 	if(connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0){
 		printf("Can't connect\n");
 		exit(0);
@@ -107,15 +116,6 @@ void main(int argc, char *argv[]){
 	tcph->urg_ptr = 0;
 
 	//setsockopt(client_fd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
-
-	/*
-	int one = 1;
-	const int *val = &one;
-	if(setsockopt(client_fd, IPPROTO_IP, IP_HDRINCL, val, sizeof(one)) < 0){
-		printf("Error setting IP_HDRINCL.");
-		exit(0);
-	}
-	*/
 
 	// Send 50 packet with delay 1 sec. Seq, ACK # shoould be added ( Not implemented ) & checksum should be recalculated
 	for(i = 1; i<51; i++){
